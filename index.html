@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Spreadsheet</title>
+    
+    <!-- Include jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Include JavaScript Libraries -->
+    <script src="papaparse.min.js"></script>
+    <script src="js-yaml.min.js"></script>
+    <script src="github.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="style.css">
+    
+</head>
+<body>
+    <h1>Update Spreadsheet</h1>
+
+    <!-- Filter UI -->
+    <label for="positionFilter">Filter by Position:</label>
+    <select id="positionFilter">
+        <option value="all">All</option>
+        <option value="Assistant Professor">Assistant Professor</option>
+        <option value="MS(R) student">MS(R) student</option>
+        <option value="PhD student">PhD student</option>
+        <option value="Research Assistant">Research Assistant</option>
+        <option value="Undergraduate student">Undergraduate student</option>
+        <option value="Intern">Intern</option>
+        <option value="MSc student">MSc student</option>
+        <!-- Add more options for other positions as needed -->
+    </select>
+
+    <!-- Lab Members List -->
+    <div id="labMembers">
+        <!-- Lab members will be dynamically loaded here -->
+    </div>
+
+    <!-- Textarea for YAML Output -->
+    <textarea id="source" cols="10" rows="5" style="border: 1px solid #000; width: 100%; height: 500px;"></textarea>
+
+    <!-- JavaScript for Filtering and Data Loading -->
+    <script>
+        // Variables for GitHub authentication and data retrieval
+        var $org = 'gsaurabhr';
+        var $repo = 'webdesign-test-template';
+        var $branch = 'gh-pages';
+        var $GHToken = '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'; // GitHub Token
+
+        // Define the URL of the Google Sheets data
+        var $googleSheetURL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQZsCV0Qz51UmRvIQG5Ty0Ri8ZjnGQlEY3iWqAuvLfiYd25SWi1hUXTCnZB-mjGzDa318SY96l2dWJH/pub?output=tsv';
+
+        // Function to load data from Google Sheets and display lab members
+        function loadLabMembers() {
+            Papa.parse($googleSheetURL, {
+                download: true,
+                header: true,
+                complete: function(results) {
+                    console.log('Parsed data:', results); // Log parsed data
+                    if (results.errors.length > 0) {
+                        console.error('Parsing errors:', results.errors); // Log parsing errors
+                        return;
+                    }
+
+                    var labMembers = results.data;
+                    console.log('Lab members:', labMembers); // Log lab members data
+                    var filteredPosition = $('#positionFilter').val(); // Get the selected position
+
+                    // Clear previous lab members
+                    $('#labMembers').empty();
+
+                    // Iterate through lab members and display based on filter
+                    $.each(labMembers, function(index, member) {
+                        console.log('Member:', member); // Log member object
+                        if (filteredPosition === 'all' || member.Position === filteredPosition) {
+                            var html = '<div class="lab-member">';
+                            html += '<h2>' + (member.Name || 'Name Not Available') + '</h2>'; // Check if 'Name' field exists
+                            html += '<p>Position: ' + (member.Position || 'Position Not Available') + '</p>'; // Check if 'Position' field exists
+                            // Add other member details as needed
+                            html += '</div>';
+                            $('#labMembers').append(html);
+                        }
+                    });
+
+                    // Convert data to YAML format and display in textarea
+                    var yamlDump = jsyaml.dump(labMembers);
+                    $('#source').val(yamlDump);
+
+                    // Update data in GitHub repository
+                    updateGitHubRepo(yamlDump);
+                }
+            });
+        }
+
+        // Function to update data in GitHub repository
+        function updateGitHubRepo(yamlData) {
+            var github = new Github({token: $GHToken, auth: "oauth"});
+            var repo = github.getRepo($org, $repo);
+            var writePath = '_data/lab_members.yaml';
+
+            repo.write($branch, writePath, yamlData, 'Update lab members data', function(err) {
+                if (err) {
+                    console.error('Error updating data:', err);
+                } else {
+                    console.log('Data updated successfully!');
+                }
+            });
+        }
+
+        // Event listener for filter change
+        $(document).ready(function() {
+            $('#positionFilter').on('change', function() {
+                loadLabMembers();
+            });
+        });
+
+        // Initial load of lab members data
+        loadLabMembers();
+    </script>
+</body>
+</html>

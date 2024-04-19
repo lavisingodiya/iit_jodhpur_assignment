@@ -1,0 +1,46 @@
+/* Style for h1 */
+h1 {
+    text-align: center;
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+/* Style for filter dropdown */
+#positionFilter {
+    margin-bottom: 20px;
+    font-size: 16px;
+    padding: 8px;
+}
+
+/* Style for lab members container */
+#labMembers {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+/* Style for lab member cards */
+.lab-member {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.lab-member h2 {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.lab-member p {
+    font-size: 16px;
+    color: #666;
+}
+
+/* Style for textarea */
+#source {
+    margin-top: 20px;
+    font-size: 14px;
+    padding: 10px;
+    resize: none;
+}
